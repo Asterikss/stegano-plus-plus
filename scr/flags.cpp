@@ -8,6 +8,7 @@ namespace params {
 std::string path_to_read = "";
 std::string path_to_write = "";
 std::string mess = "";
+bool help_printed = false;
 } // namespace params
 
 namespace flags {
@@ -16,6 +17,11 @@ auto get_path_to_write() -> std::string { return params::path_to_write; }
 auto get_mess() -> std::string { return params::mess; }
 
 auto help() -> void {
+  if (params::help_printed) {
+    return;
+  }
+  params::help_printed = true;
+
   std::cout << "\n~~~~~~~~~~\nSupported extensions: bmp, ppm (P3 "
                "type)\nAvailable options: -i/--info, -e/--encrypt, "
                "-d/--decrypt, -c/--check, -h/--help\n\n";
@@ -80,7 +86,7 @@ auto print_permission(std::filesystem::perms const &p) -> char {
   return ((p & fs::perms::owner_read) != fs::perms::none ? 'r' : '-');
 }
 
-/// Checks and displays the informationa about the path given.
+/// Checks and displays the informationa about the given path.
 ///
 ///@returns False if something went wrong.
 auto check_extension(std::string const &path) -> bool {
@@ -98,25 +104,23 @@ auto check_extension(std::string const &path) -> bool {
     return false;
   }
 
-  if (std::filesystem::exists(path)) {
-    std::cout << "\nFile has been found (" << path << ")\n";
-    std::cout << "Format choosen: " << reverse_str(exten) << "\n";
-    std::cout << "File size: " << std::filesystem::file_size(path) << "\n";
-    /* std::chrono_literals::print_last_write_time(std::filesystem::last_write_time(path));
-     */
-    print_write_time(std::filesystem::last_write_time(path));
-    std::cout << "Permissions: ";
-    if (print_permission(std::filesystem::status(path).permissions()) == '-') {
-      std::cout << "WARNING!!!: no premission to read this file. Encryption "
-                   "and decryption will probably fail\n";
-    }
-    std::cout << "\n";
-
-  } else {
+  if (!std::filesystem::exists(path)) {
     std::cout << "Could not find the file (" << path << ")\n";
     help();
     return false;
   }
+
+  std::cout << "\nFile has been found (" << path << ")\n";
+  std::cout << "Format choosen: " << reverse_str(exten) << "\n";
+  std::cout << "File size: " << std::filesystem::file_size(path) << "\n";
+  // std::chrono_literals::print_last_write_time(std::filesystem::last_write_time(path));
+  print_write_time(std::filesystem::last_write_time(path));
+  std::cout << "Permissions: ";
+  if (print_permission(std::filesystem::status(path).permissions()) == '-') {
+    std::cout << "WARNING!!!: no premission to read this file. Encryption "
+      "and decryption will probably fail\n";
+  }
+  std::cout << "\n";
 
   return true;
 }
@@ -135,7 +139,7 @@ auto check_extension(std::string const &path) -> bool {
 ///@returns False if something went wrong.
 auto usual_check(std::vector<std::string>::iterator &curr,
                  std::vector<std::string>::iterator const &end,
-                 std::vector<std::string> const &args, int const &next_flag_in,
+                 std::vector<std::string> const &args, int const next_flag_in,
                  int &inner_arg_counter) -> bool {
   inner_arg_counter++;
 
@@ -145,18 +149,9 @@ auto usual_check(std::vector<std::string>::iterator &curr,
     return false;
   }
   
-  if (!check_extension(*(curr + 1))) {
-    std::cout << "opop"
-              << "\n";
-    return false;
-  }
+  curr += next_flag_in - 1;
 
-  for (int i = 0; i < (next_flag_in - 1); i++) {
-    ++curr;
-  }
-  // curr += next_flag_in - 1;
-
-  return true;
+  return check_extension(*(curr + 1 - (next_flag_in - 1)));
 }
 
 /// Parses the arguments.
@@ -164,7 +159,7 @@ auto usual_check(std::vector<std::string>::iterator &curr,
 /// Sets the paths and the message.
 ///@returns False if something went wrong.
 auto parse(int const argc, char *arqv[]) -> bool {
-  if (argc <= 2 || argc > 12) {
+  if (argc <= 1 || argc > 12) {
     help();
     return false;
   }
@@ -175,12 +170,14 @@ auto parse(int const argc, char *arqv[]) -> bool {
   }
 
   int arg_counter = 0, inner_arg_counter = 0;
+
   for (auto curr = args.begin(), end = args.end(); curr != end;
        ++curr, arg_counter++) {
 
     if (*curr == "-h" || *curr == "--help") {
       help();
-      return false;
+      inner_arg_counter++;
+      // return false;
     }
 
     if (*curr == "-i" || *curr == "--info") {
