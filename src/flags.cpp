@@ -58,19 +58,25 @@ Notes:
   return false;
 }
 
-auto reverse_str(std::string const &str) -> std::string {
-  std::string tmp;
-  for (int i = str.size() - 1; i >= 0; i--) {
-    tmp += str[i];
-  }
-  return tmp;
-}
-
 /// Fetches the extension of the path given.
 ///
 ///@returns The extension of the file.
-auto get_extension(std::string const &path) -> std::string {
-  return reverse_str(path).substr(0, (reverse_str(path).find(".") + 1));
+auto get_file_type(std::string const &path_str) -> FileType {
+  if (!std::filesystem::exists(path_str)) {
+    help();
+    throw std::runtime_error("Path could not be located: " + path_str);
+  }
+
+  std::filesystem::path path(path_str);
+  auto extension = path.extension().string();
+  if (extension == ".ppm") {
+    return FileType::PPM;
+  } else if (extension == ".bmp") {
+    return FileType::BMP;
+  } else {
+    help();
+    throw std::runtime_error("Unsupported file extension: " + extension);
+  }
 }
 
 auto print_write_time(std::filesystem::file_time_type const &ftime) -> void {
@@ -215,7 +221,7 @@ auto parse(int const argc, char *arqv[]) -> bool {
         return false;
       }
       if (((std::filesystem::file_size(*(curr - 1))) -
-           ((get_extension(*(curr - 1)) == "mpp.") ? 4 : 138)) <
+           ((get_file_type(*(curr - 1)) == FileType::PPM) ? 4 : 138)) <
           (((*(curr)).size() * 8))) {
         std::cout << "There is no place to write this message\n";
       } else
