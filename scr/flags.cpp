@@ -16,35 +16,36 @@ auto get_path_to_read() -> std::string { return params::path_to_read; }
 auto get_path_to_write() -> std::string { return params::path_to_write; }
 auto get_mess() -> std::string { return params::mess; }
 
-auto help() -> void {
-  if (params::help_printed) {
-    return;
-  }
-  params::help_printed = true;
+auto help() -> bool {
+  if (!params::help_printed) {
+    params::help_printed = true;
 
-  std::cout << "\n~~~~~~~~~~\nSupported extensions: bmp, ppm (P3 "
-               "type)\nAvailable options: -i/--info, -e/--encrypt, "
-               "-d/--decrypt, -c/--check, -h/--help\n\n";
-  std::cout << "-i <path> - checks if a file specified in the <path> can be "
-               "modified.\n\n";
-  std::cout << "-e <path> <message> - opens, if possible, <path> and creates "
-               "mirror file with the <message> in it.\n"
-               "                      <message> should be souranded by \".\n\n";
-  std::cout << "-d <path> - tries to read a message encrypted in a file.\n"
-               "            Remeber to only decrypt files that "
-               "where previously encrypted with this program.\n\n";
-  std::cout << "-c <path> <message> - checks if <message> can be written to a "
-               "file specified in the <path>.\n\n";
-  std::cout << "Formula e.g. : stego.exe -i \"there/here/picture.ppm\" -e "
-               "here/there/image.ppm \"Behind you\"\n";
-  std::cout << "Notes: <path> cannot be longer than 70 characters. Max 12 "
-               "arguments.\n"
-               "      \"-e\" produces a new file, so using -e and -d on the "
-               "same file at once is poinless and will produce Gibberish.\n"
-               "		Only one encryption and/or decryption per "
-               "execute (i.e. cant use -e twice).\n"
-               "		To encrypt ppm P6 files you can use online "
-               "converter and turn them into P3s\n~~~~~~~~~~\n";
+    std::cout << "\n~~~~~~~~~~\nSupported extensions: bmp, ppm (P3 "
+                 "type)\nAvailable options: -i/--info, -e/--encrypt, "
+                 "-d/--decrypt, -c/--check, -h/--help\n\n";
+    std::cout << "-i <path> - checks if a file specified in the <path> can be "
+                 "modified.\n\n";
+    std::cout << "-e <path> <message> - opens, if possible, <path> and creates "
+                 "mirror file with the <message> in it.\n"
+                 "                      <message> should be souranded by \".\n\n";
+    std::cout << "-d <path> - tries to read a message encrypted in a file.\n"
+                 "            Remeber to only decrypt files that "
+                 "where previously encrypted with this program.\n\n";
+    std::cout << "-c <path> <message> - checks if <message> can be written to a "
+                 "file specified in the <path>.\n\n";
+    std::cout << "Formula e.g. : stego.exe -i \"there/here/picture.ppm\" -e "
+                 "here/there/image.ppm \"Behind you\"\n";
+    std::cout << "Notes: <path> cannot be longer than 70 characters. Max 12 "
+                 "arguments.\n"
+                 "      \"-e\" produces a new file, so using -e and -d on the "
+                 "same file at once is poinless and will produce Gibberish.\n"
+                 "		Only one encryption and/or decryption per "
+                 "execute (i.e. cant use -e twice).\n"
+                 "		To encrypt ppm P6 files you can use online "
+                 "converter and turn them into P3s\n~~~~~~~~~~\n";
+  }
+
+  return false;
 }
 
 auto reverse_str(std::string const &str) -> std::string {
@@ -90,24 +91,22 @@ auto print_permission(std::filesystem::perms const &p) -> char {
 ///
 ///@returns False if something went wrong.
 auto check_extension(std::string const &path) -> bool {
+  // This might actually fail later given e.g. ".ppm"
   if (path.size() > 70 || path.find(".") == std::string::npos) {
     std::cout << "Incorrect path\n";
-    help();
-    return false;
+    return help();
   }
 
   std::string exten = get_extension(path);
   if (exten != "mpp." && exten != "pmb.") {
     std::cout << "Not supported extention"
               << "\n";
-    help();
-    return false;
+    return help();
   }
 
   if (!std::filesystem::exists(path)) {
     std::cout << "Could not find the file (" << path << ")\n";
-    help();
-    return false;
+    return help();
   }
 
   std::cout << "\nFile has been found (" << path << ")\n";
@@ -144,11 +143,10 @@ auto usual_check(std::vector<std::string>::iterator &curr,
   inner_arg_counter++;
 
   if (curr + (next_flag_in - 1) >= end) {
-    std::cout << "Missing argument\n";
-    help();
-    return false;
+    std::cout << "Missing arguments\n";
+    return help();
   }
-  
+
   curr += next_flag_in - 1;
 
   return check_extension(*(curr + 1 - (next_flag_in - 1)));
@@ -160,8 +158,7 @@ auto usual_check(std::vector<std::string>::iterator &curr,
 ///@returns False if something went wrong.
 auto parse(int const argc, char *arqv[]) -> bool {
   if (argc <= 1 || argc > 12) {
-    help();
-    return false;
+    return help();
   }
 
   std::vector<std::string> args;
@@ -217,8 +214,7 @@ auto parse(int const argc, char *arqv[]) -> bool {
 
     if ((arg_counter + 1) != inner_arg_counter) {
       std::cout << "Wrong arguments\n";
-      help();
-      return false;
+      return help();
     }
   }
   return true;
