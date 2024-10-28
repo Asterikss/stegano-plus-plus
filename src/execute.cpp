@@ -13,10 +13,8 @@ auto ex_parse(int argc, char *arqv[]) -> bool {
 }
 
 auto new_file_name(std::string const &fname) -> std::string {
-  std::string reversed_extension = flags::reverse_str(fname);
-  std::string reversed_no_extension = reversed_extension.substr((reversed_extension.find(".") + 1), reversed_extension.size());
-  reversed_extension = reversed_extension.substr(0, reversed_extension.find("."));
-  return flags::reverse_str(reversed_extension + ".detpyrcne_" + reversed_no_extension);
+  std::filesystem::path path(fname);
+  return path.parent_path().string() + "/" + path.stem().string() + "_encrypted" + path.extension().string();
 }
 
 /// Encrypts the message in a bmp file.
@@ -317,12 +315,16 @@ auto decrypt() -> void {
   if (flags::get_path_to_read().size() == 0) {
     return;
   }
-  if (flags::get_extension(flags::get_path_to_read()) == "mpp.") {
-    read_mess_ppm();
-  } else if (flags::get_extension(flags::get_path_to_read()) == "pmb.") {
-    read_mess_bmp();
-  } else {
-    std::cout << "Error: wrong extension\n";
+
+  switch (flags::get_file_type(flags::get_path_to_read())) {
+    case FileType::PPM:
+      read_mess_ppm();
+      break;
+    case FileType::BMP:
+      read_mess_bmp();
+      break;
+    default:
+      throw std::runtime_error("Unsupported file extension");
   }
 }
 
@@ -333,15 +335,16 @@ auto encrypt() -> void {
   if (flags::get_path_to_write().size() == 0) {
     return;
   }
-  // TODO do not fetch extension here twice
-  if (flags::get_extension(flags::get_path_to_write()) == "mpp.") {
-    encrypt_ppm();
-  } else if (flags::get_extension(flags::get_path_to_write()) == "pmb.") {
-    encrypt_bmp();
-    // Do I need else? flags parse should check it
-    // Also check the size of the file every time
-  } else {
-    std::cout << "Error: wrong extension\n";
+
+  switch (flags::get_file_type(flags::get_path_to_write())) {
+    case FileType::PPM:
+      encrypt_ppm();
+      break;
+    case FileType::BMP:
+      encrypt_bmp();
+      break;
+    default:
+      throw std::runtime_error("Unsupported file extension");
   }
 }
 
