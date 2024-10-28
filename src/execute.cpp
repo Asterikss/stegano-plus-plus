@@ -12,11 +12,11 @@ auto ex_parse(int argc, char *arqv[]) -> bool {
   return flags::parse(argc, arqv);
 }
 
-auto new_file_name(std::string const &name) -> std::string {
-  std::string tmp = flags::reverse_str(name);
-  std::string tmp3 = tmp.substr((tmp.find(".") + 1), tmp.size());
-  tmp = tmp.substr(0, tmp.find("."));
-  return flags::reverse_str(tmp + ".detpyrcne_" + tmp3);
+auto new_file_name(std::string const &fname) -> std::string {
+  std::string reversed_extension = flags::reverse_str(fname);
+  std::string reversed_no_extension = reversed_extension.substr((reversed_extension.find(".") + 1), reversed_extension.size());
+  reversed_extension = reversed_extension.substr(0, reversed_extension.find("."));
+  return flags::reverse_str(reversed_extension + ".detpyrcne_" + reversed_no_extension);
 }
 
 /// Encrypts the message in a bmp file.
@@ -26,10 +26,10 @@ auto new_file_name(std::string const &name) -> std::string {
 /// Creates a new file with the appropriate ammount of bits changed.
 ///@returns Void.
 auto encrypt_bmp() -> void {
-  std::ifstream old_image;
-  old_image.open(flags::get_path_to_write(), std::ios::binary);
+  std::ifstream original_image;
+  original_image.open(flags::get_path_to_write(), std::ios::binary);
 
-  if (!old_image.is_open()) {
+  if (!original_image.is_open()) {
     std::cout << "File to be encrypted could not be opened\n";
     return;
   }
@@ -37,7 +37,7 @@ auto encrypt_bmp() -> void {
 
   const int file_header_size = 26;
   unsigned char file_header[file_header_size];
-  old_image.read(reinterpret_cast<char *>(file_header), file_header_size);
+  original_image.read(reinterpret_cast<char *>(file_header), file_header_size);
 
   if (file_header[0] != 'B' || file_header[1] != 'M') {
     std::cout << "Incorrenct format (not a bit map (\"BM\"))\n";
@@ -60,11 +60,11 @@ auto encrypt_bmp() -> void {
 
   const int add_info_size = possition_of_pixels - file_header_size;
   unsigned char add_info[add_info_size];
-  old_image.read(reinterpret_cast<char *>(add_info), add_info_size);
+  original_image.read(reinterpret_cast<char *>(add_info), add_info_size);
 
   const int pixels_size = file_size - possition_of_pixels;
   unsigned char pixels_bgr[pixels_size];
-  old_image.read(reinterpret_cast<char *>(pixels_bgr), pixels_size);
+  original_image.read(reinterpret_cast<char *>(pixels_bgr), pixels_size);
 
   const std::vector<std::bitset<8>> bin_mess =
       cryption::conv_str_to_bin(flags::get_mess(), true);
@@ -195,18 +195,18 @@ auto read_mess_bmp() -> void {
 /// Creates a new file with the appropriate ammount of bits changed.
 ///@returns Void.
 auto encrypt_ppm() -> void {
-  std::ifstream old_image;
+  std::ifstream original_image;
   std::ofstream new_image;
-  old_image.open(flags::get_path_to_write());
+  original_image.open(flags::get_path_to_write());
   new_image.open(new_file_name(flags::get_path_to_write()));
 
-  if (!(old_image.is_open() && new_image.is_open())) {
+  if (!(original_image.is_open() && new_image.is_open())) {
     std::cout << "File to encrypt could not be opened" << "\n";
     return;
   }
   std::cout << "File to encrypt has been opened" << "\n";
   std::string type, width, height, RGB;
-  old_image >> type;
+  original_image >> type;
   if (type != "P3") {
     std::cout << "Warning: only ppm files of type \"P3\" are supported.\n"
                  "Type found: "
@@ -214,9 +214,9 @@ auto encrypt_ppm() -> void {
     flags::help();
     return;
   }
-  old_image >> width;
-  old_image >> height;
-  old_image >> RGB;
+  original_image >> width;
+  original_image >> height;
+  original_image >> RGB;
   std::cout << "Image dinesions: width: " << width << " height: " << height;
   new_image << type << "\n" << width << " " << height << "\n" << RGB << "\n";
 
@@ -226,9 +226,9 @@ auto encrypt_ppm() -> void {
   int r, g, b;
 
   int index = 0;
-  while (old_image >> red) {
-    old_image >> green;
-    old_image >> blue;
+  while (original_image >> red) {
+    original_image >> green;
+    original_image >> blue;
 
     std::stringstream redstream(red);
     std::stringstream greenstream(green);
@@ -249,7 +249,7 @@ auto encrypt_ppm() -> void {
     new_image << r << " " << g << " " << b << "\n";
   }
 
-  old_image.close();
+  original_image.close();
   new_image.close();
 
   std::cout << "\nEncryption completed\n\n";

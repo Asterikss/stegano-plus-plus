@@ -13,6 +13,7 @@ bool help_printed = false;
 } // namespace params
 
 namespace flags {
+
 auto get_path_to_read() -> std::string { return params::path_to_read; }
 auto get_path_to_write() -> std::string { return params::path_to_write; }
 auto get_mess() -> std::string { return params::mess; }
@@ -81,7 +82,7 @@ auto print_write_time(std::filesystem::file_time_type const &ftime) -> void {
 /// Displays the informationa about the permissions.
 ///
 ///@returns The owner_read permission.
-auto print_permission(std::filesystem::perms const &p) -> char {
+auto print_permissions(std::filesystem::perms const &p) -> char {
   namespace fs = std::filesystem;
   std::cout << ((p & fs::perms::owner_read) != fs::perms::none ? "r" : "-")
             << ((p & fs::perms::owner_write) != fs::perms::none ? "w" : "-")
@@ -124,9 +125,9 @@ auto check_extension(std::string const &path) -> bool {
   // std::chrono_literals::print_last_write_time(std::filesystem::last_write_time(path));
   print_write_time(std::filesystem::last_write_time(path));
   std::cout << "Permissions: ";
-  if (print_permission(std::filesystem::status(path).permissions()) == '-') {
-    std::cout << "WARNING!!!: no premission to read this file. Encryption "
-      "and decryption will probably fail\n";
+  if (print_permissions(std::filesystem::status(path).permissions()) == '-') {
+    std::cout << "WARNING: no premission to read this file. Encryption "
+                 "and decryption will probably fail\n";
   }
   std::cout << "\n";
 
@@ -143,7 +144,7 @@ auto check_extension(std::string const &path) -> bool {
 ///@param args Arguments parsed earlier.
 ///@param next_flag_in relative possition of the next flag.
 ///@param inner_arg_counter Used to check if their is nothing in bweetwen flags
-///and if some of them were not used twice.
+/// and if some of them were not used twice.
 ///@returns False if something went wrong.
 auto usual_check(std::vector<std::string>::iterator &curr,
                  std::vector<std::string>::iterator const &end,
