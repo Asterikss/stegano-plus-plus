@@ -1,7 +1,10 @@
+#include "flags.hpp"
+
 #include <chrono>
 #include <filesystem>
 #include <iostream>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -103,41 +106,23 @@ auto print_permissions(std::filesystem::perms const &p) -> char {
   return ((p & fs::perms::owner_read) != fs::perms::none ? 'r' : '-');
 }
 
-/// Checks and displays the informationa about the given path.
+/// Checks correctness and displays the informationa about the given path.
 ///
-///@returns False if something went wrong.
-auto check_extension(std::string const &path) -> bool {
-  // This might actually fail later given e.g. ".ppm"
-  if (path.size() > 70 || path.find(".") == std::string::npos) {
-    std::cout << "Incorrect path\n";
-    return help();
-  }
+///@returns Void
+auto check_file(std::string const &path_str) -> void {
+  FileType file_type = get_file_type(path_str);
 
-  std::string exten = get_extension(path);
-  if (exten != "mpp." && exten != "pmb.") {
-    std::cout << "Not supported extention"
-              << "\n";
-    return help();
-  }
-
-  if (!std::filesystem::exists(path)) {
-    std::cout << "Could not find the file (" << path << ")\n";
-    return help();
-  }
-
-  std::cout << "\nFile has been found (" << path << ")\n";
-  std::cout << "Format choosen: " << reverse_str(exten) << "\n";
-  std::cout << "File size: " << std::filesystem::file_size(path) << "\n";
+  std::cout << "\nFile has been found (" << path_str << ")\n";
+  std::cout << "Format choosen: " << (file_type == FileType::PPM ? "PPM" : "BMP") << "\n";
+  std::cout << "File size: " << std::filesystem::file_size(path_str) << "\n";
   // std::chrono_literals::print_last_write_time(std::filesystem::last_write_time(path));
-  print_write_time(std::filesystem::last_write_time(path));
+  print_write_time(std::filesystem::last_write_time(path_str));
   std::cout << "Permissions: ";
-  if (print_permissions(std::filesystem::status(path).permissions()) == '-') {
+  if (print_permissions(std::filesystem::status(path_str).permissions()) == '-') {
     std::cout << "WARNING: no premission to read this file. Encryption "
                  "and decryption will probably fail\n";
   }
   std::cout << "\n";
-
-  return true;
 }
 
 /// Function used when setting any flag.
@@ -165,7 +150,8 @@ auto usual_check(std::vector<std::string>::iterator &curr,
 
   curr += next_flag_in - 1;
 
-  return check_extension(*(curr + 1 - (next_flag_in - 1)));
+  check_file(*(curr + 1 - (next_flag_in - 1)));
+  return true; // TODO
 }
 
 /// Parses the arguments.

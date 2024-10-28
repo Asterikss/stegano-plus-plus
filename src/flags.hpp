@@ -14,7 +14,7 @@ auto get_file_type(std::string const &path) -> FileType;
 auto help() -> bool;
 auto print_last_write_time(std::filesystem::file_time_type const &ftime)
     -> void;
-auto check_file(std::string const &path) -> bool;
+auto check_file(std::string const &path) -> void;
 auto usual_check(std::vector<std::string>::iterator &curr,
                  std::vector<std::string>::iterator const &end,
                  std::vector<std::string> const &args, int const next_flag_in,
