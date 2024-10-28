@@ -3,8 +3,6 @@
 #include <iostream>
 #include <bitset>
 
-// #include "headers/flags.hpp"
-// #include "headers/cryption.hpp"
 #include "flags.hpp"
 #include "cryption.hpp"
 
