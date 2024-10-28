@@ -1,6 +1,7 @@
 #include <chrono>
 #include <filesystem>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -20,29 +21,37 @@ auto help() -> bool {
   if (!params::help_printed) {
     params::help_printed = true;
 
-    std::cout << "\n~~~~~~~~~~\nSupported extensions: bmp, ppm (P3 "
-                 "type)\nAvailable options: -i/--info, -e/--encrypt, "
-                 "-d/--decrypt, -c/--check, -h/--help\n\n";
-    std::cout << "-i <path> - checks if a file specified in the <path> can be "
-                 "modified.\n\n";
-    std::cout << "-e <path> <message> - opens, if possible, <path> and creates "
-                 "mirror file with the <message> in it.\n"
-                 "                      <message> should be souranded by \".\n\n";
-    std::cout << "-d <path> - tries to read a message encrypted in a file.\n"
-                 "            Remeber to only decrypt files that "
-                 "where previously encrypted with this program.\n\n";
-    std::cout << "-c <path> <message> - checks if <message> can be written to a "
-                 "file specified in the <path>.\n\n";
-    std::cout << "Formula e.g. : stego.exe -i \"there/here/picture.ppm\" -e "
-                 "here/there/image.ppm \"Behind you\"\n";
-    std::cout << "Notes: <path> cannot be longer than 70 characters. Max 12 "
-                 "arguments.\n"
-                 "      \"-e\" produces a new file, so using -e and -d on the "
-                 "same file at once is poinless and will produce Gibberish.\n"
-                 "		Only one encryption and/or decryption per "
-                 "execute (i.e. cant use -e twice).\n"
-                 "		To encrypt ppm P6 files you can use online "
-                 "converter and turn them into P3s\n~~~~~~~~~~\n";
+    std::ostringstream help_message;
+
+    help_message << R"(
+~~~~~~~~~~
+Supported extensions: bmp, ppm (P3 type)
+Available options:
+  -i/--info     : Checks if a file specified in the <path> can be modified.
+                  Usage: -i <path>
+  -e/--encrypt  : Opens the <path> and creates a mirror file with the <message> embedded.
+                  Usage: -e <path> <message>
+                  Note: <message> should be surrounded by double quotes.
+  -d/--decrypt  : Reads an encrypted message in a file.
+                  Only decrypt files that were encrypted with this program.
+                  Usage: -d <path>
+  -c/--check    : Checks if <message> can be written to a file specified by <path>.
+                  Usage: -c <path> <message>
+  -h/--help     : Prints this help message.
+
+Example Usage:
+  ./bin/stegopp -i there/here/picture.ppm -e here/there/image.ppm "Behind you"
+
+Notes:
+  - <path> cannot exceed 70 characters.
+  - Maximum 12 arguments.
+  - "-e" produces a new file, so using -e and -d on the same file simultaneously will produce gibberish.
+  - Only one encryption or decryption per execute (i.e., cannot use -e twice).
+  - To encrypt ppm P6 files, you can use an online converter to turn them into P3s.
+~~~~~~~~~~
+    )";
+
+    std::cout << help_message.str();
   }
 
   return false;
