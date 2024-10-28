@@ -125,7 +125,7 @@ namespace cryption{
 			while (tmp.size() < 8){
 				tmp.push_back(0);
 			}
-			reverse(tmp.begin(), tmp.end());
+      reverse(tmp.begin(), tmp.end());
 			bin.insert(bin.end(),tmp.begin(),tmp.end());
 		}
 

@@ -3,8 +3,10 @@
 #include <iostream>
 #include <bitset>
 
-#include "headers/flags.hpp"
-#include "headers/cryption.hpp"
+// #include "headers/flags.hpp"
+// #include "headers/cryption.hpp"
+#include "flags.hpp"
+#include "cryption.hpp"
 
 namespace execute{
 
@@ -105,6 +107,7 @@ namespace execute{
 	auto read_mess_bmp() -> void{
 		std::ifstream image;
 		image.open(flags::get_path_to_read(), std::ios::binary);
+        // TODO file size changes for some reason for ppms
 
 		if (!image.is_open()){
 			std::cout << "File to decrypt could not be opened\n";
